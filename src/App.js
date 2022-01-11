@@ -11,7 +11,6 @@ import 'react-toastify/dist/ReactToastify.css';
 export class App extends Component {
   state = {
     query: '',
-    status: 'Idle',
   };
 
   handleFormSubmit = query => {

@@ -23,10 +23,12 @@ class ImageGallery extends Component {
     const { query } = this.props;
     const { page } = this.state;
     if (prevProps.query !== query) {
-      this.setState({ status: 'pending' });
-
-      apiImages(query, page)
-        .then(query => {
+      this.setState({
+        status: 'pending',
+        page: 1,
+      });
+      try {
+        apiImages(query, page).then(query => {
           if (!query.hits.length) {
             this.setState({
               status: 'idle',
@@ -35,19 +37,26 @@ class ImageGallery extends Component {
           } else {
             this.setState({
               status: 'resolved',
+              page: 1,
               query: query.hits,
             });
           }
-        })
-        .catch(error => this.setState({ error }));
-    }
-    if (prevState.page !== page) {
-      apiImages(query, page).then(query => {
-        this.setState({
-          status: 'resolved',
-          query: [...prevState.query, ...query.hits],
         });
-      });
+      } catch (error) {
+        this.setState({ error });
+      }
+    }
+    if (prevState.page !== page && page !== 1) {
+      try {
+        apiImages(query, page).then(query => {
+          this.setState({
+            status: 'resolved',
+            query: [...prevState.query, ...query.hits],
+          });
+        });
+      } catch (error) {
+        this.setState({ error });
+      }
     }
   }
 
@@ -79,12 +88,12 @@ class ImageGallery extends Component {
       return (
         <>
           <List className="gallery">
-            {query.map(image => {
+            {query.map(({ id, webformatURL, largeImageURL }) => {
               return (
                 <ImageGalleryItem
-                  key={image.id}
-                  smallImg={image.webformatURL}
-                  onClick={() => this.openModal(image.largeImageURL)}
+                  key={id}
+                  smallImg={webformatURL}
+                  onClick={() => this.openModal(largeImageURL)}
                 />
               );
             })}
